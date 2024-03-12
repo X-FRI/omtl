@@ -48,15 +48,18 @@ functor
   struct
     let get () : string =
       M.get_info () |> String.split_on_char '\n' |> M.filter |> M.decorate |> String.concat "\n"
+    [@@inline always]
   end
 
 module Get_Info = struct
   module Backtrace = struct
     let get_info () = Printexc.get_raw_backtrace () |> Printexc.raw_backtrace_to_string
+    [@@inline always]
   end
 
   module CallStack = struct
     let get_info () = Printexc.get_callstack 20 |> Printexc.raw_backtrace_to_string
+    [@@inline always]
   end
 end
 
@@ -68,10 +71,11 @@ module Filter = struct
            (not (String.starts_with ~prefix:"Called from Omtl.test.time" s))
            && not (String.equal s ""))
         backtraces
+    [@@inline always]
   end
 
   module CallStack = struct
-    let filter (lst : string list) : string list = lst
+    let filter (lst : string list) : string list = lst [@@inline always]
   end
 end
 

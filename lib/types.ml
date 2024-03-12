@@ -40,7 +40,7 @@ and test_case = string * (unit -> (unit, string) result)
 
 module Test_Result = struct
   type t =
-    | Ok of time
+    | Pass of time
     | Fail of info * backtraces * callstack
 
   and time = float

@@ -44,7 +44,7 @@ let test status (f : unit -> (unit, string) Result.t) : Test_Result.t =
           Result.map (fun () -> Standalone_unix.gettimeofday () -. timer) result
         in
         match time f with
-        | Result.Ok time -> Test_Result.Ok time
+        | Result.Ok time -> Test_Result.Pass time
         | Result.Error info ->
             let backtrace = if backtrace then Backtrace.get () else String.empty
             and callstack = if callstack then CallStack.get () else String.empty in
@@ -63,12 +63,12 @@ let test_case status (test_case : test_case) : string =
   | { backtrace; callstack; force; suit = _ } -> (
       let name, f = test_case in
       match test status f with
-      | Test_Result.Ok time ->
+      | Test_Result.Pass time ->
           Format.sprintf
             "\t %s- %s...%s %s"
-            (text ~force ~color:Ok "o")
+            (text ~force ~color:Pass "o")
             name
-            (text ~force ~color:Ok "OK")
+            (text ~force ~color:Pass "OK")
             (text ~force ~color:Time (Format.sprintf "(%f ms)" (time *. 1000.)))
       | Test_Result.Fail (i, b, c) ->
           Format.sprintf

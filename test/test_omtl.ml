@@ -30,35 +30,16 @@
 open Omtl
 
 (* A module with functions to test *)
-module My_String = struct
-  let equal = String.equal
+module Suit = struct
+  let pass () = ()
 
-  let capitalize = String.capitalize_ascii
-
-  let str_concat = String.concat ""
+  let failed () = "Failed !!!"
 end
 
 (* The tests *)
-let test_equal () =
-  if My_String.equal "hello!" "hello!" then
-    Ok ()
-  else
-    Error {| My_String.equal "hello!" = "hello!" |}
+let test_pass () = Suit.pass () |> ok
 
-
-let test_capitalize () =
-  if String.equal "HELLO!" (My_String.capitalize "hELLO!") then
-    Ok ()
-  else
-    Error {| My_String.capitalize "hELLO!" = "HELLO!!" |}
-
-
-let test_str_concat () =
-  if String.equal "foobar" (My_String.str_concat ["foo"; "bar"]) then
-    Ok ()
-  else
-    Error {| My_String.str_concat ["foo"; "bar"] = "foobar" |}
-
+let test_failed () = Suit.failed () |> err
 
 let test_failure () = failwith "Take it easy, this is just an example of a failed test"
 
@@ -67,17 +48,16 @@ let test_exception () = raise Not_found
 let test_function_running_time () =
   for _ = 0 to 100000 do
     ()
-  done;
-  Ok ()
+  done
+  |> ok
 
 
 (* Run it *)
 let _ =
   "My_String"
   +:> [
-        "equal" >== test_equal;
-        "capitalize" >== test_capitalize;
-        "str_concat" >== test_str_concat;
+        "pass" >== test_pass;
+        "failed" >== test_failed;
         "Examples of test failures" >== test_failure;
         "Examples of undefined exception" >== test_exception;
         "Test function running time" >== test_function_running_time;

@@ -29,10 +29,11 @@
 
 open Types
 
-(** Assist in building test sets and individual test items to improve the readability of test code *)
+(* Assist in building test sets and individual test items to improve the readability of test code *)
 let ( +:> ) (name : string) (test_case_list : test_case list) = name, test_case_list
 
 let ( >== ) (name : string) (f : unit -> (unit, string) result) : test_case = name, f
 
-(** Wrapper function to failwith *)
-let fail = failwith
+let ok v = Ok v
+
+let err v = Error v
