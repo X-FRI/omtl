@@ -27,12 +27,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *)
 
-open Type
+type color =
+  | Ok
+  | Fail
+  | Info_title
+  | First_line
+  | Dash
+  | Suit_name
+  | First_class_info
+  | Second_class_info
 
-(** Assist in building test sets and individual test items to improve the readability of test code *)
-let ( +:> ) (name : string) (test_case_list : test_case list) = name, test_case_list
+let color_map : (color, string) Hashtbl.t =
+  [
+    Ok, "\027[32m";
+    Fail, "\027[31m";
+    Info_title, "\027[4;36m";
+    First_line, "\027[33m";
+    Dash, "\027[35m";
+    Suit_name, "\027[1;34m";
+    First_class_info, "\027[38m";
+    Second_class_info, "\027[37m";
+  ]
+  |> List.to_seq
+  |> Hashtbl.of_seq
 
-let ( >== ) (name : string) (f : unit -> unit) : test_case = name, f
 
-(** Wrapper function to failwith *)
-let fail = failwith
+(** On Windows platforms, text is returned directly unless force is true *)
+let text ~(color : color) ?(force : bool = false) (text : string) =
+  if Sys.os_type = "Win32" && not force then
+    text
+  else
+    Format.sprintf "%s%s\027[0m" (Hashtbl.find color_map color) text

@@ -1,37 +1,38 @@
-(**********************************************************************************)
-(* MIT License                                                                    *)
-(*                                                                                *)
-(* Copyright (c) 2023 Muqiu Han                                                   *)
-(*                                                                                *)
-(* Permission is hereby granted, free of charge, to any person obtaining a copy   *)
-(* of this software and associated documentation files (the "Software"), to deal  *)
-(* in the Software without restriction, including without limitation the rights   *)
-(* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell      *)
-(* copies of the Software, and to permit persons to whom the Software is          *)
-(* furnished to do so, subject to the following conditions:                       *)
-(*                                                                                *)
-(* The above copyright notice and this permission notice shall be included in all *)
-(* copies or substantial portions of the Software.                                *)
-(*                                                                                *)
-(* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR     *)
-(* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       *)
-(* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    *)
-(* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         *)
-(* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  *)
-(* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  *)
-(* SOFTWARE.                                                                      *)
-(**********************************************************************************)
+(* Copyright (c) 2023 Muqiu Han
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
+ *     * Neither the name of omtl nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
+ *       without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *)
 
 include Type
 include Utils
 include Info
+open Color
 
-let test
-    ?(backtrace : bool = false)
-    ?(callstack : bool = false)
-    ?(color : bool = false)
-    (f : unit -> unit) : Test_Result.t
-  =
+let test ?(backtrace : bool = false) ?(callstack : bool = false) (f : unit -> unit) : Test_Result.t =
   try
     let time (f : unit -> unit) : float =
       let timer : float = Unix.gettimeofday () in
@@ -41,88 +42,75 @@ let test
     Ok (time f)
   with
   | Failure s ->
-      let backtrace =
-        if backtrace then if color then Color.Backtrace.get () else Backtrace.get () else ""
-      in
-      let callstack =
-        if callstack then if color then Color.CallStack.get () else CallStack.get () else ""
-      in
+      let backtrace = if backtrace then Backtrace.get () else String.empty
+      and callstack = if callstack then CallStack.get () else String.empty in
       Fail (s, backtrace, callstack)
-  | e -> Fail ("Exception: " ^ Printexc.to_string e, "", "")
+  | e -> Fail ("Exception: " ^ Printexc.to_string e, String.empty, String.empty)
 
 
 let test_case
     ?(backtrace : bool = false)
     ?(callstack : bool = false)
-    ?(color : bool = false)
+    ?(force : bool = false)
     (test_case : test_case) : string
   =
   let name, f = test_case in
-  match test f ~backtrace ~callstack ~color with
+  match test f ~backtrace ~callstack with
   | Test_Result.Ok time ->
-      if color then
-        Format.sprintf "   \027[32mo\027[0m- %s...\027[32mOK\027[0m \027[38m(%fs)\027[0m" name time
-      else
-        Format.sprintf "   o- %s...OK (%fs)" name time
+      Format.sprintf
+        "\t %s- %s...%s%s"
+        (text ~force ~color:Ok "o")
+        name
+        (text ~force ~color:Ok "OK")
+        (text ~force ~color:First_class_info (Format.sprintf "(%fs)" time))
   | Test_Result.Fail (i, b, c) ->
-      if color then
-        Format.sprintf
-          "   \027[31mo\027[0m- %s...\027[31mFAIL\027[0m \027[38m(0s)\027[0m\n\
-          \        \027[31m|!| %s\027[0m\n\
-           %s%s"
-          name
-          i
-          (if backtrace then
-             Format.sprintf
-               "        \027[4;36mBACKTRACES\027[0m %s\n"
-               (if String.length b = 0 then "No more info" else b)
-           else
-             "")
-          (if callstack then
-             Format.sprintf
-               "        \027[4;36mCALLSTACKS\027[0m %s"
-               (if String.length c = 0 then "No more info" else c)
-           else
-             "")
-      else
-        Format.sprintf
-          "   o- %s...FAIL (0s)\n        |!| %s\n%s%s"
-          name
-          i
-          (if backtrace then
-             Format.sprintf
-               "        BACKTRACES %s\n"
-               (if String.length b = 0 then "No more info" else b)
-           else
-             "")
-          (if callstack then
-             Format.sprintf
-               "        CALLSTACKS %s"
-               (if String.length c = 0 then "No more info" else c)
-           else
-             "")
+      Format.sprintf
+        "\t %s- %s...%s%s\n\t\t %s\n%s%s"
+        (text ~force ~color:Fail "o")
+        name
+        (text ~force ~color:Fail "FAIL")
+        (text ~force ~color:First_class_info "(0s)")
+        (text ~force ~color:Fail (Format.sprintf "|!| %s" i))
+        (if backtrace then
+           Format.sprintf
+             "\t\t %s %s\n"
+             (text ~force ~color:Info_title "BACKTRACE")
+             (if String.length b = 0 then "No more info" else b)
+         else
+           String.empty)
+        (if callstack then
+           Format.sprintf
+             "\t\t %s %s\n"
+             (text ~force ~color:Info_title "CALLSTACK")
+             (if String.length b = 0 then "No more info" else c)
+         else
+           String.empty)
 
 
 let test_suit
     ?(backtrace : bool = false)
     ?(callstack : bool = false)
-    ?(color : bool = false)
+    ?(force : bool = false)
     (test_suit : test_suit) : unit
   =
   let name, test_case_list = test_suit in
-  Format.sprintf "\027[35m|-\027[0m \027[38mTest suit for\027[0m \027[1;34m%s\027[0m" name
+  Format.sprintf
+    "%s %s %s"
+    (text ~force ~color:Dash "|-")
+    (text ~force ~color:First_class_info "Test suit for")
+    (text ~force ~color:Suit_name name)
   |> print_endline;
   List.iter
-    (fun case -> test_case case ~backtrace ~callstack ~color |> print_endline)
+    (fun case -> test_case case ~backtrace ~callstack ~force |> print_endline)
     test_case_list
 
 
 let run
     ?(backtrace : bool = false)
     ?(callstack : bool = false)
-    ?(color : bool = false)
+    ?(force : bool = false)
     (suit : test_suit)
   =
   if backtrace then Printexc.record_backtrace true;
-  let _ = test_suit ~backtrace ~callstack ~color suit in
+  let _ = test_suit ~backtrace ~callstack ~force suit in
   ()

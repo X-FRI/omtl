@@ -22,7 +22,7 @@
  (description "OCaml Minimalist Testing Library")
  (depends
   (ocaml
-   (>= 4.13))
+   (>= 5.0.0))
   dune)
  (tags
   (testing "test framework")))
