@@ -23,6 +23,7 @@
 (**********************************************************************************)
 
 type test_suit = string * test_case list
+
 and test_case = string * (unit -> unit)
 
 module Test_Result = struct
@@ -31,7 +32,10 @@ module Test_Result = struct
     | Fail of info * backtraces * callstack
 
   and time = float
+
   and info = string
+
   and callstack = string
+
   and backtraces = string
 end

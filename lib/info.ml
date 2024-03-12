@@ -24,7 +24,9 @@
 
 module type Info_Impl = sig
   val get_info : unit -> string
+
   val filter : string list -> string list
+
   val decorate : string list -> string list
 end
 
@@ -38,12 +40,7 @@ functor
   ->
   struct
     let get () : string =
-      M.get_info ()
-      |> String.split_on_char '\n'
-      |> M.filter
-      |> M.decorate
-      |> String.concat "\n"
-    ;;
+      M.get_info () |> String.split_on_char '\n' |> M.filter |> M.decorate |> String.concat "\n"
   end
 
 module Get_Info = struct
@@ -60,9 +57,7 @@ module Filter = struct
   module Backtrace = struct
     let filter =
       List.filter (fun s ->
-        (not (String.starts_with ~prefix:"Called from Omtl.test.time" s))
-        && not (String.equal s ""))
-    ;;
+        (not (String.starts_with ~prefix:"Called from Omtl.test.time" s)) && not (String.equal s ""))
   end
 
   module CallStack = struct
@@ -70,42 +65,13 @@ module Filter = struct
       let index = ref 8 in
       let lst_len = List.length lst - !index in
       lst
-      
       |> List.filter (fun _ ->
-           index := !index + 1;
-           !index != lst_len)
-    ;;
+        index := !index + 1;
+        !index != lst_len)
   end
 end
 
 module Backtrace : Info_API = Info_Generator ((
-  struct
-    include Get_Info.Backtrace
-    include Filter.Backtrace
-
-    let decorate (lst : string list) : string list =
-      match lst with
-      | [] -> []
-      | x :: xs -> ("| " ^ x) :: (List.map (fun x -> "                   | " ^ x)) xs
-    ;;
-  end :
-    Info_Impl))
-
-module CallStack : Info_API = Info_Generator ((
-  struct
-    include Get_Info.CallStack
-    include Filter.CallStack
-
-    let decorate (lst : string list) : string list =
-      match lst with
-      | [] -> []
-      | x :: xs -> ("| " ^ x) :: (List.map (fun x -> "                   | " ^ x)) xs
-    ;;
-  end :
-    Info_Impl))
-
-module Color = struct
-  module Backtrace : Info_API = Info_Generator ((
     struct
       include Get_Info.Backtrace
       include Filter.Backtrace
@@ -113,14 +79,11 @@ module Color = struct
       let decorate (lst : string list) : string list =
         match lst with
         | [] -> []
-        | x :: xs ->
-          ("\027[33m| " ^ x ^ "\027[0m")
-          :: (List.map (fun x -> "                   \027[37m| " ^ x ^ "\027[0m")) xs
-      ;;
+        | x :: xs -> ("| " ^ x) :: (List.map (fun x -> "                   | " ^ x)) xs
     end :
       Info_Impl))
 
-  module CallStack : Info_API = Info_Generator ((
+module CallStack : Info_API = Info_Generator ((
     struct
       include Get_Info.CallStack
       include Filter.CallStack
@@ -128,10 +91,36 @@ module Color = struct
       let decorate (lst : string list) : string list =
         match lst with
         | [] -> []
-        | x :: xs ->
-          ("\027[33m| " ^ x ^ "\027[0m")
-          :: (List.map (fun x -> "                   \027[37m| " ^ x ^ "\027[0m")) xs
-      ;;
+        | x :: xs -> ("| " ^ x) :: (List.map (fun x -> "                   | " ^ x)) xs
     end :
       Info_Impl))
+
+module Color = struct
+  module Backtrace : Info_API = Info_Generator ((
+      struct
+        include Get_Info.Backtrace
+        include Filter.Backtrace
+
+        let decorate (lst : string list) : string list =
+          match lst with
+          | [] -> []
+          | x :: xs ->
+              ("\027[33m| " ^ x ^ "\027[0m")
+              :: (List.map (fun x -> "                   \027[37m| " ^ x ^ "\027[0m")) xs
+      end :
+        Info_Impl))
+
+  module CallStack : Info_API = Info_Generator ((
+      struct
+        include Get_Info.CallStack
+        include Filter.CallStack
+
+        let decorate (lst : string list) : string list =
+          match lst with
+          | [] -> []
+          | x :: xs ->
+              ("\027[33m| " ^ x ^ "\027[0m")
+              :: (List.map (fun x -> "                   \027[37m| " ^ x ^ "\027[0m")) xs
+      end :
+        Info_Impl))
 end
