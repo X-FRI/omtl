@@ -11,7 +11,7 @@ __An OCaml minimalist testing framework with zero dependencies.__
 
 minimum version
 
-![](https://github.com/muqiuhan/omtl/workflows/4.13.x/badge.svg)
+![](https://github.com/muqiuhan/omtl/workflows/5.1.1/badge.svg)
 
 
 <img src=".github/demo.png">
