@@ -27,82 +27,84 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *)
 
-include Type
+include Types
 include Utils
 include Info
 open Color
 
-let test ?(backtrace : bool = false) ?(callstack : bool = false) (f : unit -> unit) : Test_Result.t =
-  try
-    let time (f : unit -> unit) : float =
-      let timer : float = Standalone_unix.gettimeofday () in
-      f ();
-      Standalone_unix.gettimeofday () -. timer
-    in
-    Ok (time f)
-  with
-  | Failure s ->
-      let backtrace = if backtrace then Backtrace.get () else String.empty
-      and callstack = if callstack then CallStack.get () else String.empty in
-      Fail (s, backtrace, callstack)
-  | e -> Fail ("Exception: " ^ Printexc.to_string e, String.empty, String.empty)
+let test status (f : unit -> (unit, string) Result.t) : Test_Result.t =
+  match status with
+  | { backtrace; callstack; force = _; suit = _ } -> begin
+      try
+        let time (f : unit -> (unit, string) Result.t) : (float, string) Result.t =
+          let timer : float = Standalone_unix.gettimeofday () in
+          if backtrace then Printexc.record_backtrace true;
+          let result = f () in
+          if backtrace then Printexc.record_backtrace false;
+          Result.map (fun () -> Standalone_unix.gettimeofday () -. timer) result
+        in
+        match time f with
+        | Result.Ok time -> Test_Result.Ok time
+        | Result.Error info ->
+            let backtrace = if backtrace then Backtrace.get () else String.empty
+            and callstack = if callstack then CallStack.get () else String.empty in
+            Fail (info, backtrace, callstack)
+      with
+      | Failure s ->
+          let backtrace = if backtrace then Backtrace.get () else String.empty
+          and callstack = if callstack then CallStack.get () else String.empty in
+          Fail (s, backtrace, callstack)
+      | e -> Fail ("Exception: " ^ Printexc.to_string e, String.empty, String.empty)
+    end
 
 
-let test_case
-    ?(backtrace : bool = false)
-    ?(callstack : bool = false)
-    ?(force : bool = false)
-    (test_case : test_case) : string
-  =
-  let name, f = test_case in
-  match test f ~backtrace ~callstack with
-  | Test_Result.Ok time ->
+let test_case status (test_case : test_case) : string =
+  match status with
+  | { backtrace; callstack; force; suit = _ } -> (
+      let name, f = test_case in
+      match test status f with
+      | Test_Result.Ok time ->
+          Format.sprintf
+            "\t %s- %s...%s %s"
+            (text ~force ~color:Ok "o")
+            name
+            (text ~force ~color:Ok "OK")
+            (text ~force ~color:Time (Format.sprintf "(%f ms)" (time *. 1000.)))
+      | Test_Result.Fail (i, b, c) ->
+          Format.sprintf
+            "\t %s- %s...%s %s\n\t\t %s\n%s%s"
+            (text ~force ~color:Fail "o")
+            name
+            (text ~force ~color:Fail "FAIL")
+            (text ~force ~color:Time "(0 ms)")
+            (text ~force ~color:Fail_info (Format.sprintf "|!| %s" i))
+            (if backtrace then
+               Format.sprintf
+                 "\t\t %s %s\n"
+                 (text ~force ~color:Info_title "BACKTRACE")
+                 (if String.length b = 0 then "No more info" else b)
+             else
+               String.empty)
+            (if callstack then
+               Format.sprintf
+                 "\t\t %s %s\n"
+                 (text ~force ~color:Info_title "CALLSTACK")
+                 (if String.length b = 0 then "No more info" else c)
+             else
+               String.empty))
+
+
+let test_suit status : unit =
+  match status with
+  | { backtrace = _; callstack = _; force; suit } ->
+      let name, test_case_list = suit in
       Format.sprintf
-        "\t %s- %s...%s %s"
-        (text ~force ~color:Ok "o")
-        name
-        (text ~force ~color:Ok "OK")
-        (text ~force ~color:Time (Format.sprintf "(%f ms)" (time *. 1000.)))
-  | Test_Result.Fail (i, b, c) ->
-      Format.sprintf
-        "\t %s- %s...%s %s\n\t\t %s\n%s%s"
-        (text ~force ~color:Fail "o")
-        name
-        (text ~force ~color:Fail "FAIL")
-        (text ~force ~color:Time "(0 ms)")
-        (text ~force ~color:Fail_info (Format.sprintf "|!| %s" i))
-        (if backtrace then
-           Format.sprintf
-             "\t\t %s %s\n"
-             (text ~force ~color:Info_title "BACKTRACE")
-             (if String.length b = 0 then "No more info" else b)
-         else
-           String.empty)
-        (if callstack then
-           Format.sprintf
-             "\t\t %s %s\n"
-             (text ~force ~color:Info_title "CALLSTACK")
-             (if String.length b = 0 then "No more info" else c)
-         else
-           String.empty)
-
-
-let test_suit
-    ?(backtrace : bool = false)
-    ?(callstack : bool = false)
-    ?(force : bool = false)
-    (test_suit : test_suit) : unit
-  =
-  let name, test_case_list = test_suit in
-  Format.sprintf
-    "%s %s %s"
-    (text ~force ~color:Dash "|-")
-    (text ~force ~color:First_class_info "Test suit for")
-    (text ~force ~color:Suit_name name)
-  |> print_endline;
-  List.iter
-    (fun case -> test_case case ~backtrace ~callstack ~force |> print_endline)
-    test_case_list
+        "%s %s %s"
+        (text ~force ~color:Dash "|-")
+        (text ~force ~color:First_class_info "Test suit for")
+        (text ~force ~color:Suit_name name)
+      |> print_endline;
+      List.iter (fun case -> test_case status case |> print_endline) test_case_list
 
 
 let run
@@ -111,6 +113,4 @@ let run
     ?(force : bool = false)
     (suit : test_suit)
   =
-  if backtrace then Printexc.record_backtrace true;
-  let _ = test_suit ~backtrace ~callstack ~force suit in
-  ()
+  test_suit { backtrace; callstack; force; suit }

@@ -27,9 +27,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *)
 
-type test_suit = string * test_case list
+type status = {
+  backtrace: bool;
+  callstack: bool;
+  force: bool;
+  suit: test_suit;
+}
 
-and test_case = string * (unit -> unit)
+and test_suit = string * test_case list
+
+and test_case = string * (unit -> (unit, string) result)
 
 module Test_Result = struct
   type t =

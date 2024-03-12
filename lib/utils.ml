@@ -27,12 +27,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *)
 
-open Type
+open Types
 
 (** Assist in building test sets and individual test items to improve the readability of test code *)
 let ( +:> ) (name : string) (test_case_list : test_case list) = name, test_case_list
 
-let ( >== ) (name : string) (f : unit -> unit) : test_case = name, f
+let ( >== ) (name : string) (f : unit -> (unit, string) result) : test_case = name, f
 
 (** Wrapper function to failwith *)
 let fail = failwith

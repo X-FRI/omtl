@@ -41,23 +41,23 @@ end
 (* The tests *)
 let test_equal () =
   if My_String.equal "hello!" "hello!" then
-    ()
+    Ok ()
   else
-    fail {| My_String.equal "hello!" = "hello!" |}
+    Error {| My_String.equal "hello!" = "hello!" |}
 
 
 let test_capitalize () =
   if String.equal "HELLO!" (My_String.capitalize "hELLO!") then
-    ()
+    Ok ()
   else
-    fail {| My_String.capitalize "hELLO!" = "HELLO!!" |}
+    Error {| My_String.capitalize "hELLO!" = "HELLO!!" |}
 
 
 let test_str_concat () =
   if String.equal "foobar" (My_String.str_concat ["foo"; "bar"]) then
-    ()
+    Ok ()
   else
-    fail {| My_String.str_concat ["foo"; "bar"] = "foobar" |}
+    Error {| My_String.str_concat ["foo"; "bar"] = "foobar" |}
 
 
 let test_failure () = failwith "Take it easy, this is just an example of a failed test"
@@ -67,7 +67,8 @@ let test_exception () = raise Not_found
 let test_function_running_time () =
   for _ = 0 to 100000 do
     ()
-  done
+  done;
+  Ok ()
 
 
 (* Run it *)

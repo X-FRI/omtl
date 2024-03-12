@@ -79,10 +79,10 @@ module Default_decorate = struct
   let decorate (lst : string list) : string list =
     match lst with
     | [] -> []
-    | x :: xs ->
-        text ~color:First_line (Format.sprintf "| %s" x)
+    | item :: rest ->
+        text ~color:First_line (Format.sprintf "| %s" item)
         :: (List.map (fun x -> Format.sprintf "\t\t\t   | %s" x |> text ~color:Second_class_info))
-             xs
+             rest
 end
 
 module Backtrace : Info_API = Info_Generator ((
