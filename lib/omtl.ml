@@ -58,19 +58,19 @@ let test_case
   match test f ~backtrace ~callstack with
   | Test_Result.Ok time ->
       Format.sprintf
-        "\t %s- %s...%s%s"
+        "\t %s- %s...%s %s"
         (text ~force ~color:Ok "o")
         name
         (text ~force ~color:Ok "OK")
-        (text ~force ~color:First_class_info (Format.sprintf "(%f ms)" (time *. 1000.)))
+        (text ~force ~color:Time (Format.sprintf "(%f ms)" (time *. 1000.)))
   | Test_Result.Fail (i, b, c) ->
       Format.sprintf
-        "\t %s- %s...%s%s\n\t\t %s\n%s%s"
+        "\t %s- %s...%s %s\n\t\t %s\n%s%s"
         (text ~force ~color:Fail "o")
         name
         (text ~force ~color:Fail "FAIL")
-        (text ~force ~color:First_class_info "(0 ms)")
-        (text ~force ~color:Fail (Format.sprintf "|!| %s" i))
+        (text ~force ~color:Time "(0 ms)")
+        (text ~force ~color:Fail_info (Format.sprintf "|!| %s" i))
         (if backtrace then
            Format.sprintf
              "\t\t %s %s\n"

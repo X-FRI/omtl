@@ -30,6 +30,8 @@
 type color =
   | Ok
   | Fail
+  | Fail_info
+  | Time
   | Info_title
   | First_line
   | Dash
@@ -40,8 +42,10 @@ type color =
 let color_map : (color, string) Hashtbl.t =
   [
     Ok, "\027[32m";
-    Fail, "\027[31m";
+    Fail, "\027[5;31m";
+    Fail_info, "\027[31m";
     Info_title, "\027[4;36m";
+    Time, "\027[38m";
     First_line, "\027[33m";
     Dash, "\027[35m";
     Suit_name, "\027[1;34m";

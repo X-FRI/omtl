@@ -5,9 +5,9 @@
 __An OCaml minimalist testing framework with zero dependencies.__
 
 
-![](https://github.com/muqiuhan/omtl/workflows/Linux/badge.svg)
-![](https://github.com/muqiuhan/omtl/workflows/Windows/badge.svg)
-![](https://github.com/muqiuhan/omtl/workflows/MacOS/badge.svg)
+[![Windows](https://github.com/muqiuhan/omtl/actions/workflows/Windows.yml/badge.svg)](https://github.com/muqiuhan/omtl/actions/workflows/Windows.yml)
+[![Linux](https://github.com/muqiuhan/omtl/actions/workflows/Linux.yml/badge.svg)](https://github.com/muqiuhan/omtl/actions/workflows/Linux.yml)
+[![MacOS](https://github.com/muqiuhan/omtl/actions/workflows/MacOS.yml/badge.svg)](https://github.com/muqiuhan/omtl/actions/workflows/MacOS.yml)
 
 
 <img src=".github/demo.png">

@@ -19,7 +19,6 @@
 #include "caml/unixsupport.h"
 #include <caml/alloc.h>
 #include <caml/fail.h>
-#include <caml/mlvalues.h>
 #include <sys/time.h>
 #include <sys/types.h>
 
