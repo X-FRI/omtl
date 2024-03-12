@@ -9,10 +9,6 @@ __An OCaml minimalist testing framework with zero dependencies.__
 ![](https://github.com/muqiuhan/omtl/workflows/Windows/badge.svg)
 ![](https://github.com/muqiuhan/omtl/workflows/MacOS/badge.svg)
 
-minimum version
-
-![](https://github.com/muqiuhan/omtl/workflows/5.1.1/badge.svg)
-
 
 <img src=".github/demo.png">
   
@@ -43,13 +39,11 @@ let test_equal () =
   else
     fail {| My_String.equal "hello!" = "hello!" |}
 
-
 let test_capitalize () =
   if String.equal "HELLO!" (My_String.capitalize "hELLO!") then
     ()
   else
     fail {| My_String.capitalize "hELLO!" = "HELLO!!" |}
-
 
 let test_str_concat () =
   if String.equal "foobar" (My_String.str_concat ["foo"; "bar"]) then
@@ -57,12 +51,9 @@ let test_str_concat () =
   else
     fail {| My_String.str_concat ["foo"; "bar"] = "foobar" |}
 
-
 let test_failure () = failwith "Take it easy, this is just an example of a failed test"
-
 let test_exception () = raise Not_found
-
-let test_function_running_time () = Unix.sleep 1
+let test_function_running_time () = for _ = 0 to 100000 do () done
 
 (* Run it *)
 let _ =

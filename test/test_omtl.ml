@@ -64,7 +64,11 @@ let test_failure () = failwith "Take it easy, this is just an example of a faile
 
 let test_exception () = raise Not_found
 
-let test_function_running_time () = Unix.sleep 1
+let test_function_running_time () =
+  for _ = 0 to 100000 do
+    ()
+  done
+
 
 (* Run it *)
 let _ =

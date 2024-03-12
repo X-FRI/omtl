@@ -35,9 +35,9 @@ open Color
 let test ?(backtrace : bool = false) ?(callstack : bool = false) (f : unit -> unit) : Test_Result.t =
   try
     let time (f : unit -> unit) : float =
-      let timer : float = Unix.gettimeofday () in
+      let timer : float = Standalone_unix.gettimeofday () in
       f ();
-      Unix.gettimeofday () -. timer
+      Standalone_unix.gettimeofday () -. timer
     in
     Ok (time f)
   with
