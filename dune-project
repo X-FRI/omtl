@@ -18,8 +18,8 @@
 (package
  (allow_empty)
  (name omtl)
- (synopsis "An OCaml minimalist testing framework with zero dependencies.")
- (description "An OCaml minimalist testing framework with zero dependencies.")
+ (synopsis "An OCaml minimalist testing framework with zero dependencies")
+ (description "An OCaml minimalist testing framework with zero dependencies")
  (depends
   (ocaml
    (>= 4.13.1))
